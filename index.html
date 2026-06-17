@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#24504a">
+    <title>鋼筋籠撿料計算</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="app-header">
+        <div>
+          <p>手機網頁版</p>
+          <h1>鋼筋籠撿料計算</h1>
+        </div>
+      </header>
+
+      <form id="rebar-form" class="calculator-form">
+        <section class="form-section">
+          <h2>圖面基本資料</h2>
+          <label>
+            <span>案名 / 構件名稱</span>
+            <input name="projectName" type="text" placeholder="例：A1樁">
+          </label>
+
+          <div class="field-row">
+            <label>
+              <span>樁徑 cm</span>
+              <input name="pileDiameterCm" type="number" inputmode="decimal" min="1" step="0.1" value="100" required>
+            </label>
+            <label>
+              <span>鋼筋籠數量</span>
+              <input name="cageCount" type="number" inputmode="numeric" min="1" step="1" value="1" required>
+            </label>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-title-row">
+            <h2>籠長</h2>
+            <label class="switch-row">
+              <input name="hasOverlap" type="checkbox">
+              <span>有搭接</span>
+            </label>
+          </div>
+
+          <label id="straight-length-field">
+            <span>鋼筋籠長度 m</span>
+            <input name="cageLengthM" type="number" inputmode="decimal" min="0.01" step="0.01" value="12">
+          </label>
+
+          <div id="overlap-fields" class="nested-fields" hidden>
+            <div class="field-row">
+              <label>
+                <span>第一段 m</span>
+                <input name="section1M" type="number" inputmode="decimal" min="0.01" step="0.01">
+              </label>
+              <label>
+                <span>第二段 m</span>
+                <input name="section2M" type="number" inputmode="decimal" min="0.01" step="0.01">
+              </label>
+            </div>
+            <label>
+              <span>搭接長度 m</span>
+              <input name="lapM" type="number" inputmode="decimal" min="0.01" step="0.01">
+            </label>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h2>鋼筋圖面標示</h2>
+          <label>
+            <span>主筋</span>
+            <input name="mainMark" type="text" value="16-D16" placeholder="16-D16 / D16x16 / #5 16支 / #516" required>
+          </label>
+          <label>
+            <span>箍筋</span>
+            <input name="stirrupMark" type="text" value="D10@20" placeholder="D10@20 / #3@20cm" required>
+          </label>
+          <label>
+            <span>箍筋料長 m</span>
+            <input name="stirrupBarLengthM" type="number" inputmode="decimal" min="0.01" step="0.01" value="7" required>
+          </label>
+        </section>
+
+        <section class="form-section">
+          <div class="section-title-row">
+            <h2>分段間距</h2>
+            <label class="switch-row">
+              <input name="useMultiSpacing" type="checkbox">
+              <span>上中下分段</span>
+            </label>
+          </div>
+
+          <div id="multi-spacing-fields" class="nested-fields" hidden>
+            <div class="field-row">
+              <label>
+                <span>上段長 m</span>
+                <input name="topLengthM" type="number" inputmode="decimal" min="0.01" step="0.01">
+              </label>
+              <label>
+                <span>上段 @cm</span>
+                <input name="topSpacingCm" type="number" inputmode="decimal" min="0.01" step="0.1">
+              </label>
+            </div>
+            <div class="field-row">
+              <label>
+                <span>中段長 m</span>
+                <input name="middleLengthM" type="number" inputmode="decimal" min="0.01" step="0.01">
+              </label>
+              <label>
+                <span>中段 @cm</span>
+                <input name="middleSpacingCm" type="number" inputmode="decimal" min="0.01" step="0.1">
+              </label>
+            </div>
+            <div class="field-row">
+              <label>
+                <span>下段長 m</span>
+                <input name="bottomLengthM" type="number" inputmode="decimal" min="0.01" step="0.01">
+              </label>
+              <label>
+                <span>下段 @cm</span>
+                <input name="bottomSpacingCm" type="number" inputmode="decimal" min="0.01" step="0.1">
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <div id="error-panel" class="error-panel" hidden></div>
+
+        <div class="action-bar">
+          <button type="reset" class="secondary-button">清除</button>
+          <button type="submit" class="primary-button">計算</button>
+        </div>
+      </form>
+
+      <section id="result-panel" class="result-panel" hidden></section>
+    </main>
+  </body>
+</html>
