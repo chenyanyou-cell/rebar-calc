@@ -145,6 +145,37 @@ export function parseStirrupMark(mark) {
   throw new Error("箍筋標示無法解析，例：D10@20、#3@20cm");
 }
 
+function buildMainRebarFromFields(data) {
+  if (data.mainCode || data.mainQuantity) {
+    const code = toPositiveInteger(data.mainCode, "主筋號數");
+    const quantity = toPositiveInteger(data.mainQuantity, "主筋支數");
+    return {
+      code,
+      diameterMm: getDiameterFromCode(code),
+      quantity,
+      source: `${code} 號 x ${quantity} 支`,
+    };
+  }
+
+  return parseMainRebarMark(data.mainMark);
+}
+
+function buildStirrupFromFields(data) {
+  if (data.stirrupCode || data.stirrupSpacingCm) {
+    const code = toPositiveInteger(data.stirrupCode, "箍筋號數");
+    const spacingCm = toPositiveNumber(data.stirrupSpacingCm, "箍筋間距");
+    const spacingText = Number.isInteger(spacingCm) ? String(spacingCm) : String(spacingCm);
+    return {
+      code,
+      diameterMm: getDiameterFromCode(code),
+      spacingCm,
+      source: `${code} 號 @ ${spacingText} cm`,
+    };
+  }
+
+  return parseStirrupMark(data.stirrupMark);
+}
+
 function calculateCageDiameter(pileDiameterCm) {
   const diameter = toPositiveNumber(pileDiameterCm, "樁徑");
   const coverCm = diameter <= 40 ? 5 : 7.5;
@@ -200,8 +231,8 @@ export function calculateRebarCage(data) {
   const cageCount = toPositiveInteger(data.cageCount, "鋼筋籠數量");
   const { coverCm, cageDiameterCm } = calculateCageDiameter(data.pileDiameterCm);
   const effectiveLengthM = calculateEffectiveLength(data);
-  const main = parseMainRebarMark(data.mainMark);
-  const stirrup = parseStirrupMark(data.stirrupMark);
+  const main = buildMainRebarFromFields(data);
+  const stirrup = buildStirrupFromFields(data);
   const stirrupBarLengthM = toPositiveNumber(data.stirrupBarLengthM, "箍筋料長");
   const segments = calculateSegments(data, effectiveLengthM, stirrup.spacingCm);
 
@@ -295,7 +326,7 @@ function renderResult(result) {
     <section class="result-section">
       <h2>主筋</h2>
       <dl>
-        <div><dt>圖面輸入</dt><dd>${result.main.source}</dd></div>
+        <div><dt>輸入資料</dt><dd>${result.main.source}</dd></div>
         <div><dt>規格</dt><dd>${result.main.code} 號 (${result.main.diameterMm} mm)</dd></div>
         <div><dt>總支數</dt><dd>${result.main.totalQuantity} 支</dd></div>
         <div><dt>總重量</dt><dd>${formatNumber(result.main.totalWeightKg)} kg</dd></div>
@@ -305,7 +336,7 @@ function renderResult(result) {
     <section class="result-section">
       <h2>箍筋</h2>
       <dl>
-        <div><dt>圖面輸入</dt><dd>${result.stirrup.source}</dd></div>
+        <div><dt>輸入資料</dt><dd>${result.stirrup.source}</dd></div>
         <div><dt>規格</dt><dd>${result.stirrup.code} 號 (${result.stirrup.diameterMm} mm)</dd></div>
         <div><dt>單圈長度</dt><dd>${formatNumber(result.stirrup.singleCircleM)} m</dd></div>
         <div><dt>單支籠圈數</dt><dd>${result.stirrup.totalCirclesPerCage} 圈</dd></div>

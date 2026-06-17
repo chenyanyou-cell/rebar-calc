@@ -70,15 +70,27 @@
         </section>
 
         <section class="form-section">
-          <h2>鋼筋圖面標示</h2>
-          <label>
-            <span>主筋</span>
-            <input name="mainMark" type="text" value="16-D16" placeholder="16-D16 / D16x16 / #5 16支 / #516" required>
-          </label>
-          <label>
-            <span>箍筋</span>
-            <input name="stirrupMark" type="text" value="D10@20" placeholder="D10@20 / #3@20cm" required>
-          </label>
+          <h2>鋼筋資料</h2>
+          <div class="field-row">
+            <label>
+              <span>主筋號數</span>
+              <input name="mainCode" type="number" inputmode="numeric" min="3" max="10" step="1" value="5" required>
+            </label>
+            <label>
+              <span>主筋支數</span>
+              <input name="mainQuantity" type="number" inputmode="numeric" min="1" step="1" value="16" required>
+            </label>
+          </div>
+          <div class="field-row">
+            <label>
+              <span>箍筋號數</span>
+              <input name="stirrupCode" type="number" inputmode="numeric" min="3" max="10" step="1" value="3" required>
+            </label>
+            <label>
+              <span>箍筋間距 cm</span>
+              <input name="stirrupSpacingCm" type="number" inputmode="decimal" min="0.01" step="any" value="20" required>
+            </label>
+          </div>
           <label>
             <span>箍筋料長 m</span>
             <input name="stirrupBarLengthM" type="number" inputmode="decimal" min="0.01" step="0.01" value="7" required>
@@ -102,7 +114,7 @@
               </label>
               <label>
                 <span>上段 @cm</span>
-                <input name="topSpacingCm" type="number" inputmode="decimal" min="0.01" step="0.1">
+                <input name="topSpacingCm" type="number" inputmode="decimal" min="0.01" step="any">
               </label>
             </div>
             <div class="field-row">
@@ -112,7 +124,7 @@
               </label>
               <label>
                 <span>中段 @cm</span>
-                <input name="middleSpacingCm" type="number" inputmode="decimal" min="0.01" step="0.1">
+                <input name="middleSpacingCm" type="number" inputmode="decimal" min="0.01" step="any">
               </label>
             </div>
             <div class="field-row">
@@ -122,7 +134,7 @@
               </label>
               <label>
                 <span>下段 @cm</span>
-                <input name="bottomSpacingCm" type="number" inputmode="decimal" min="0.01" step="0.1">
+                <input name="bottomSpacingCm" type="number" inputmode="decimal" min="0.01" step="any">
               </label>
             </div>
           </div>
