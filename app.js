@@ -200,6 +200,41 @@ function calculateEffectiveLength(data) {
   return section1M + section2M - lapM;
 }
 
+function calculateMainRebar(data, main, cageCount, effectiveLengthM) {
+  const unitWeight = getUnitWeight(main.diameterMm);
+  const hasOverlap = Boolean(data.hasOverlap);
+  const sectionInputs = hasOverlap
+    ? [
+        { label: "第一段", lengthM: toPositiveNumber(data.section1M, "第一段長度") },
+        { label: "第二段", lengthM: toPositiveNumber(data.section2M, "第二段長度") },
+      ]
+    : [{ label: "全長", lengthM: effectiveLengthM }];
+
+  const sections = sectionInputs.map((section) => {
+    const singleWeightKg = section.lengthM * main.quantity * unitWeight;
+    return {
+      label: section.label,
+      lengthM: section.lengthM,
+      quantityPerCage: main.quantity,
+      totalQuantity: main.quantity * cageCount,
+      singleWeightKg,
+      totalWeightKg: singleWeightKg * cageCount,
+    };
+  });
+
+  const singleWeightKg = sections.reduce((sum, section) => sum + section.singleWeightKg, 0);
+  const totalWeightKg = sections.reduce((sum, section) => sum + section.totalWeightKg, 0);
+
+  return {
+    ...main,
+    hasOverlap,
+    sections,
+    totalQuantity: main.quantity * cageCount,
+    singleWeightKg,
+    totalWeightKg,
+  };
+}
+
 function calculateSegments(data, effectiveLengthM, defaultSpacingCm) {
   if (!data.useMultiSpacing) {
     return [{ spacingCm: defaultSpacingCm, lengthM: effectiveLengthM }];
@@ -236,9 +271,7 @@ export function calculateRebarCage(data) {
   const stirrupBarLengthM = toPositiveNumber(data.stirrupBarLengthM, "箍筋料長");
   const segments = calculateSegments(data, effectiveLengthM, stirrup.spacingCm);
 
-  const mainSingleWeightKg =
-    effectiveLengthM * main.quantity * getUnitWeight(main.diameterMm);
-  const mainTotalWeightKg = mainSingleWeightKg * cageCount;
+  const mainResult = calculateMainRebar(data, main, cageCount, effectiveLengthM);
   const cageCenterCm = cageDiameterCm - stirrup.diameterMm / 10;
   if (cageCenterCm <= 0) {
     throw new Error("籠徑與箍筋直徑組合不合理");
@@ -263,12 +296,7 @@ export function calculateRebarCage(data) {
     cageDiameterCm,
     effectiveLengthM,
     cageCount,
-    main: {
-      ...main,
-      totalQuantity: main.quantity * cageCount,
-      singleWeightKg: mainSingleWeightKg,
-      totalWeightKg: mainTotalWeightKg,
-    },
+    main: mainResult,
     stirrup: {
       ...stirrup,
       cageCenterCm,
@@ -283,8 +311,8 @@ export function calculateRebarCage(data) {
       adjustedBarLengthM,
       segments,
     },
-    singleCageWeightKg: mainSingleWeightKg + stirrupSingleWeightKg,
-    totalWeightKg: mainTotalWeightKg + stirrupTotalWeightKg,
+    singleCageWeightKg: mainResult.singleWeightKg + stirrupSingleWeightKg,
+    totalWeightKg: mainResult.totalWeightKg + stirrupTotalWeightKg,
   };
 }
 
@@ -304,6 +332,16 @@ function getFormData(form) {
 }
 
 function renderResult(result) {
+  const mainRows = result.main.hasOverlap
+    ? result.main.sections.map((section) => `
+        <div><dt>${section.label}長度</dt><dd>${formatNumber(section.lengthM)} m</dd></div>
+        <div><dt>${section.label}支數</dt><dd>${section.totalQuantity} 支</dd></div>
+        <div><dt>${section.label}重量</dt><dd>${formatNumber(section.totalWeightKg)} kg</dd></div>
+      `).join("")
+    : `
+        <div><dt>總支數</dt><dd>${result.main.totalQuantity} 支</dd></div>
+      `;
+
   return `
     <section class="result-hero">
       <div>
@@ -328,7 +366,7 @@ function renderResult(result) {
       <dl>
         <div><dt>輸入資料</dt><dd>${result.main.source}</dd></div>
         <div><dt>規格</dt><dd>${result.main.code} 號 (${result.main.diameterMm} mm)</dd></div>
-        <div><dt>總支數</dt><dd>${result.main.totalQuantity} 支</dd></div>
+        ${mainRows}
         <div><dt>總重量</dt><dd>${formatNumber(result.main.totalWeightKg)} kg</dd></div>
       </dl>
     </section>
