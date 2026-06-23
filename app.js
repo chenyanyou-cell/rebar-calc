@@ -261,6 +261,24 @@ function calculateSegments(data, effectiveLengthM, defaultSpacingCm) {
   return segments;
 }
 
+function calculateSpiralBarUsage(barLengthM, singleCircleM) {
+  const adjustedBarLengthM = Math.max(barLengthM, singleCircleM);
+  const rawCirclesPerBar = adjustedBarLengthM / singleCircleM;
+  const baseCircles = Math.floor(rawCirclesPerBar);
+  const fractionalCircle = rawCirclesPerBar - baseCircles;
+  const hasFraction = fractionalCircle > 0.000001;
+  const fractionalLengthM = hasFraction ? fractionalCircle * singleCircleM : 0;
+
+  return {
+    adjustedBarLengthM,
+    rawCirclesPerBar,
+    circlesPerBar: Math.max(1, hasFraction ? Math.ceil(rawCirclesPerBar) : baseCircles),
+    fractionalLengthM,
+    lapLengthPerBarM: fractionalLengthM > 0.6 ? fractionalLengthM : 0,
+    hasLapLength: fractionalLengthM > 0.6,
+  };
+}
+
 export function calculateRebarCage(data) {
   const projectName = String(data.projectName ?? "").trim();
   const cageCount = toPositiveInteger(data.cageCount, "鋼筋籠數量");
@@ -282,9 +300,8 @@ export function calculateRebarCage(data) {
     (sum, segment) => sum + Math.ceil(segment.lengthM / (segment.spacingCm / 100)),
     0,
   );
-  const adjustedBarLengthM = Math.max(stirrupBarLengthM, singleCircleM);
-  const circlesPerBar = Math.max(1, Math.floor(adjustedBarLengthM / singleCircleM));
-  const barsNeededPerCage = Math.ceil(totalCirclesPerCage / circlesPerBar);
+  const spiralUsage = calculateSpiralBarUsage(stirrupBarLengthM, singleCircleM);
+  const barsNeededPerCage = Math.ceil(totalCirclesPerCage / spiralUsage.circlesPerBar);
   const stirrupTotalLengthPerCageM = totalCirclesPerCage * singleCircleM;
   const stirrupSingleWeightKg =
     stirrupTotalLengthPerCageM * getUnitWeight(stirrup.diameterMm);
@@ -303,12 +320,16 @@ export function calculateRebarCage(data) {
       singleCircleM,
       totalCirclesPerCage,
       totalLengthPerCageM: stirrupTotalLengthPerCageM,
-      circlesPerBar,
+      rawCirclesPerBar: spiralUsage.rawCirclesPerBar,
+      circlesPerBar: spiralUsage.circlesPerBar,
+      fractionalLengthM: spiralUsage.fractionalLengthM,
+      lapLengthPerBarM: spiralUsage.lapLengthPerBarM,
+      hasLapLength: spiralUsage.hasLapLength,
       barsNeededPerCage,
       totalBarsNeeded: barsNeededPerCage * cageCount,
       singleWeightKg: stirrupSingleWeightKg,
       totalWeightKg: stirrupTotalWeightKg,
-      adjustedBarLengthM,
+      adjustedBarLengthM: spiralUsage.adjustedBarLengthM,
       segments,
     },
     singleCageWeightKg: mainResult.singleWeightKg + stirrupSingleWeightKg,
@@ -376,7 +397,10 @@ function renderResult(result) {
       <dl>
         <div><dt>輸入資料</dt><dd>${result.stirrup.source}</dd></div>
         <div><dt>規格</dt><dd>${result.stirrup.code} 號 (${result.stirrup.diameterMm} mm)</dd></div>
-        <div><dt>單圈長度</dt><dd>${formatNumber(result.stirrup.singleCircleM)} m</dd></div>
+        <div><dt>螺旋單圈周長</dt><dd>${formatNumber(result.stirrup.singleCircleM)} m</dd></div>
+        <div><dt>每支料計算圈數</dt><dd>${formatNumber(result.stirrup.rawCirclesPerBar)} 圈</dd></div>
+        <div><dt>採計圈數</dt><dd>${result.stirrup.circlesPerBar} 圈</dd></div>
+        <div><dt>搭接長度</dt><dd>${result.stirrup.hasLapLength ? `${formatNumber(result.stirrup.lapLengthPerBarM)} m / 支` : "未達 0.60 m"}</dd></div>
         <div><dt>單支籠圈數</dt><dd>${result.stirrup.totalCirclesPerCage} 圈</dd></div>
         <div><dt>全部約需料</dt><dd>${result.stirrup.totalBarsNeeded} 支</dd></div>
         <div><dt>總重量</dt><dd>${formatNumber(result.stirrup.totalWeightKg)} kg</dd></div>
