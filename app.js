@@ -272,7 +272,7 @@ function calculateSpiralBarUsage(barLengthM, singleCircleM) {
   return {
     adjustedBarLengthM,
     rawCirclesPerBar,
-    circlesPerBar: Math.max(1, hasFraction ? Math.ceil(rawCirclesPerBar) : baseCircles),
+    circlesPerBar: Math.max(1, baseCircles),
     fractionalLengthM,
     lapLengthPerBarM: fractionalLengthM > 0.6 ? fractionalLengthM : 0,
     hasLapLength: fractionalLengthM > 0.6,
@@ -399,7 +399,7 @@ function renderResult(result) {
         <div><dt>規格</dt><dd>${result.stirrup.code} 號 (${result.stirrup.diameterMm} mm)</dd></div>
         <div><dt>螺旋單圈周長</dt><dd>${formatNumber(result.stirrup.singleCircleM)} m</dd></div>
         <div><dt>每支料計算圈數</dt><dd>${formatNumber(result.stirrup.rawCirclesPerBar)} 圈</dd></div>
-        <div><dt>採計圈數</dt><dd>${result.stirrup.circlesPerBar} 圈</dd></div>
+        <div><dt>完整圈數</dt><dd>${result.stirrup.circlesPerBar} 圈</dd></div>
         <div><dt>搭接長度</dt><dd>${result.stirrup.hasLapLength ? `${formatNumber(result.stirrup.lapLengthPerBarM)} m / 支` : "未達 0.60 m"}</dd></div>
         <div><dt>單支籠圈數</dt><dd>${result.stirrup.totalCirclesPerCage} 圈</dd></div>
         <div><dt>全部約需料</dt><dd>${result.stirrup.totalBarsNeeded} 支</dd></div>
